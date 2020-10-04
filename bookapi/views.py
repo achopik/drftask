@@ -1,30 +1,31 @@
 from bookapi.serializers import *
 
-from django.shortcuts import render
-
-from rest_framework import generics
+from rest_framework import viewsets
 
 
-
-class BookList(generics.ListAPIView):
+class BookViewSet(viewsets.mixins.ListModelMixin,
+                  viewsets.mixins.CreateModelMixin,
+                  viewsets.mixins.RetrieveModelMixin,
+                  viewsets.GenericViewSet):
     """
-    GET-request: show the list of books
-    """
-    queryset = Book.objects.all()
-    serializer_class = BookSerializer
-
-
-class CreateBook(generics.CreateAPIView):
-    """
-    POST-request: create a new book
+    API-endpoint for all needed actions with Book model
     """
     queryset = Book.objects.all()
-    serializer_class = AdvancedBookSerializer
+    lookup_field = 'id'
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return BookListSerializer
+        else:
+            return AdvancedBookSerializer
+
+    def get(self, request, id=None):
+        if id:
+            return self.retrieve(request, id)
+        else:
+            return self.list(request)
+
+    def post(self, request):
+        return self.create(request)
 
 
-class BookDetail(generics.RetrieveAPIView):
-    """
-    GET-request: get detailed info about book by ID
-    """
-    queryset = Book.objects.all()
-    serializer_class = AdvancedBookSerializer
